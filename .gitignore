@@ -1,3 +1,13 @@
-# Terraform
-.terraform/
+# Ignore Terraform state and config folders/files
+terraform/.terraform/
+**/.terraform/
 *.tfvars
+*.tfvars.json
+*.tfstate
+*.tfstate.backup
+
+# Ignore any terraform provider binaries anywhere
+**/terraform-provider-*
+
+# Ignore .terraform directories anywhere (redundant but safe)
+.terraform/

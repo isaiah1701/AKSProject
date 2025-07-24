@@ -21,17 +21,17 @@ spec:
         app: image-classifier
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "80"
+        prometheus.io/port: "8000"
         prometheus.io/path: "/health"
     spec:
       containers:
       - name: image-classifier
         image: acrrgdevuksouthisaiah4748.azurecr.io/fastapi-image-classifier:latest
         ports:
-        - containerPort: 80
+        - containerPort: 8000
         env:
         - name: PORT
-          value: "80"
+          value: "8000"
         resources:
           requests:
             memory: "1Gi"
@@ -42,13 +42,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 80
+            port: 8000
           initialDelaySeconds: 60
           periodSeconds: 30
         readinessProbe:
           httpGet:
             path: /health
-            port: 80
+            port: 8000
           initialDelaySeconds: 30
           periodSeconds: 10
 ---
@@ -64,7 +64,7 @@ spec:
     app: image-classifier
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8000
     protocol: TCP
   type: ClusterIP
 ---

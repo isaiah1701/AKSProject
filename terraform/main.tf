@@ -37,3 +37,11 @@ module "dns" {
   domain              = var.domain_name
   resource_group_name = module.rg.name
 }
+
+module "acr" {
+  source              = "./modules/acr"
+  acr_name            = "acr${var.resource_group_name}"
+  location            = module.rg.location
+  resource_group_name = module.rg.name
+  aks_principal_id    = module.aks.kubelet_identity
+}

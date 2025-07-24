@@ -41,3 +41,26 @@ output "aks_fqdn" {
   description = "The FQDN of the AKS cluster"
   value       = module.aks.fqdn
 }
+
+# ACR Outputs
+output "acr_login_server" {
+  description = "The login server URL of the Azure Container Registry"
+  value       = module.acr.acr_login_server
+}
+
+output "acr_name" {
+  description = "The name of the Azure Container Registry"
+  value       = module.acr.acr_name
+}
+
+output "acr_admin_username" {
+  description = "The admin username of the Azure Container Registry"
+  value       = module.acr.acr_admin_username
+  sensitive   = true
+}
+
+output "acr_admin_password" {
+  description = "The admin password of the Azure Container Registry"
+  value       = module.acr.acr_admin_password
+  sensitive   = true
+}

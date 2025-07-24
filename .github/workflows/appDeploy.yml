@@ -66,10 +66,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Debug metadata outputs
+        run: |
+          echo "Version: ${{ steps.meta.outputs.version }}"
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
+          echo "JSON: ${{ steps.meta.outputs.json }}"
+
       - name: Run Trivy vulnerability scanner on pushed image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}'
+          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -83,7 +89,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         if: always()
         with:
-          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}'
+          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest'
           format: 'sarif'
           output: 'trivy-image-results.sarif'
         env:
@@ -115,7 +121,7 @@ jobs:
 
       - name: Update image tag in manifest
         run: |
-          NEW_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}"
+          NEW_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
           sed -i "s|image: .*|image: ${NEW_IMAGE}|g" k8-manifests/app/app.yml
           
       - name: Commit and push changes
@@ -124,7 +130,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "🚀 Update image to main-${{ github.sha }}"
+            git commit -m "🚀 Update image to latest"
             git push
           fi
 

@@ -12,6 +12,11 @@ on:
       - 'app/**'
       - 'k8-manifests/app/**'
 
+permissions:
+  contents: write
+  security-events: write
+  actions: read
+
 env:
   REGISTRY: ${{ secrets.ACR_LOGIN_SERVER }}
   IMAGE_NAME: fastapi-image-classifier

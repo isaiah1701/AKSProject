@@ -32,3 +32,16 @@ terraform.rc
 
 # Ignore any terraform provider binaries anywhere
 **/terraform-provider-*
+
+# Security - API tokens and secrets
+.cloudflare-token
+*.token
+*.secret
+*secret*
+.env
+.env.local
+.env.*.local
+
+# Kubernetes secrets
+*secret*.yaml
+*secret*.yml

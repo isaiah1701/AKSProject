@@ -5,7 +5,7 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: imichael1403@gmail.com          # Replace with your email
+    email: imichael1403@gmail.com
     privateKeySecretRef:
       name: letsencrypt-dns-key
     solvers:
@@ -14,3 +14,56 @@ spec:
             apiTokenSecretRef:
               name: cloudflare-api-token-secret
               key: api-token
+---
+# Cloudflare API Token Secret (you need to create this with your actual token)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-api-token-secret
+  namespace: cert-manager
+type: Opaque
+stringData:
+  api-token: "your-cloudflare-api-token-here"  # Replace with your actual token
+---
+# Certificate for main app
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: app-cert
+  namespace: app
+spec:
+  secretName: app-tls-secret
+  issuerRef:
+    name: letsencrypt-dns
+    kind: ClusterIssuer
+  dnsNames:
+  - aks.isaiahmichael.com
+---
+# Certificate for ArgoCD
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-cert
+  namespace: argocd
+spec:
+  secretName: argocd-tls-secret
+  issuerRef:
+    name: letsencrypt-dns
+    kind: ClusterIssuer
+  dnsNames:
+  - argocd.isaiahmichael.com
+---
+# Certificate for monitoring services
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: monitoring-cert
+  namespace: monitoring
+spec:
+  secretName: monitoring-tls-secret
+  issuerRef:
+    name: letsencrypt-dns
+    kind: ClusterIssuer
+  dnsNames:
+  - prometheus.isaiahmichael.com
+  - grafana.isaiahmichael.com

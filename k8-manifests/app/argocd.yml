@@ -459,12 +459,20 @@ metadata:
   name: argocd-server-ingress
   namespace: argocd
   annotations:
+    # NGINX Ingress annotations
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    
+    # Cert-manager for SSL certificates
     cert-manager.io/cluster-issuer: "letsencrypt-dns"
+    
+    # External DNS annotations - force target IP to LoadBalancer external IP
     external-dns.alpha.kubernetes.io/hostname: argocd.isaiahmichael.com
+    external-dns.alpha.kubernetes.io/target: "74.177.117.202"
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    
+    # ArgoCD specific configuration
     nginx.ingress.kubernetes.io/server-snippet: |
       grpc_read_timeout 300;
       grpc_send_timeout 300;

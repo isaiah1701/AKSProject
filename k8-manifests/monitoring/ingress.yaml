@@ -4,11 +4,19 @@ metadata:
   name: monitoring-ingress
   namespace: monitoring
   annotations:
+    # NGINX Ingress annotations
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: "letsencrypt-dns"
     nginx.ingress.kubernetes.io/auth-type: basic
     nginx.ingress.kubernetes.io/auth-secret: monitoring-auth
     nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - Monitoring'
+    
+    # Cert-manager for SSL certificates
+    cert-manager.io/cluster-issuer: "letsencrypt-dns"
+    
+    # External DNS annotations - force target IP to LoadBalancer external IP
+    external-dns.alpha.kubernetes.io/hostname: prometheus.isaiahmichael.com,grafana.isaiahmichael.com
+    external-dns.alpha.kubernetes.io/target: "74.177.117.202"
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
     
 spec:
   ingressClassName: nginx

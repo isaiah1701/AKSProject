@@ -1,6 +1,6 @@
 # Image Classification FastAPI Application
 
-A FastAPI application for image classification using TensorFlow's MobileNetV2 pretrained model.
+A production-ready FastAPI application for image classification using TensorFlow's MobileNetV2 pretrained model.
 
 ## Features
 

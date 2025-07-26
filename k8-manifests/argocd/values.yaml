@@ -1,0 +1,45 @@
+global:
+  domain: argocd.isaiahmichael.com
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      external-dns.alpha.kubernetes.io/hostname: argocd.isaiahmichael.com
+      external-dns.alpha.kubernetes.io/target: "74.177.117.202"
+      external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+      cert-manager.io/cluster-issuer: "letsencrypt-dns"
+
+    hosts:
+      - argocd.isaiahmichael.com
+
+    tls:
+      - secretName: argocd-server-tls
+        hosts:
+          - argocd.isaiahmichael.com
+
+  service:
+    ports:
+      - name: https
+        port: 443
+        targetPort: 8080
+
+  config:
+    url: https://argocd.isaiahmichael.com
+    repositories: |
+      - type: git
+        url: https://github.com/isaiah1701/AKSProject.git
+
+dex:
+  enabled: false
+
+redis-ha:
+  enabled: false
+
+redis:
+  enabled: true

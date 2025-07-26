@@ -1,0 +1,130 @@
+# kube-prometheus-stack Helm values
+# This provides Prometheus, Grafana, Alertmanager, and all exporters
+
+# Grafana configuration
+grafana:
+  enabled: true
+  adminPassword: "grafana123"
+  
+  # Ingress configuration
+  ingress:
+    enabled: false
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-dns"
+      external-dns.alpha.kubernetes.io/hostname: grafana.isaiahmichael.com
+      external-dns.alpha.kubernetes.io/target: "74.177.117.202"
+      external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    hosts:
+      - grafana.isaiahmichael.com
+    tls:
+      - secretName: grafana-tls-secret
+        hosts:
+          - grafana.isaiahmichael.com
+
+  # Persistence for dashboards and data
+  persistence:
+    enabled: true
+    size: 10Gi
+
+  # Pre-configured dashboards
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+
+# Prometheus configuration  
+prometheus:
+  enabled: true
+  
+  prometheusSpec:
+    # Storage
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: managed-csi
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+    
+    # Service monitor selector (monitors all services with prometheus.io/scrape: true)
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    
+    # Retention
+    retention: 30d
+    
+  # Ingress configuration
+  ingress:
+    enabled: false
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-dns"
+      external-dns.alpha.kubernetes.io/hostname: prometheus.isaiahmichael.com
+      external-dns.alpha.kubernetes.io/target: "74.177.117.202"
+      external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    hosts:
+      - prometheus.isaiahmichael.com
+    tls:
+      - secretName: prometheus-tls-secret
+        hosts:
+          - prometheus.isaiahmichael.com
+
+# Alertmanager configuration
+alertmanager:
+  enabled: true
+  
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: managed-csi
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+# Node Exporter (for node/server metrics)
+nodeExporter:
+  enabled: true
+
+# Kube State Metrics (for Kubernetes object metrics)
+kubeStateMetrics:
+  enabled: true
+
+# Prometheus Operator
+prometheusOperator:
+  enabled: true
+
+# Default rules (alerts)
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: true
+    configReloaders: true
+    general: true
+    k8s: true
+    kubeApiserverAvailability: true
+    kubeApiserverBurnrate: true
+    kubeApiserverHistogram: true
+    kubeApiserverSlos: true
+    kubelet: true
+    kubeProxy: true
+    kubePrometheusGeneral: true
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: true
+    kubernetesSystem: true
+    node: true
+    nodeExporterAlerting: true
+    nodeExporterRecording: true
+    prometheus: true
+    prometheusOperator: true

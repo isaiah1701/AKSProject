@@ -20,10 +20,29 @@ data:
   url: https://argocd.isaiahmichael.com
   insecure: "true"
   
+  # Server configuration for ingress
+  server.insecure: "true"
+  server.rootpath: "/"
+
+  
   # Repository credentials template
   repositories: |
     - type: git
       url: https://github.com/isaiah1701/AKSProject.git
+---
+# ArgoCD Server Command Parameters
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cmd-params-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cmd-params-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  # Server configuration for ingress
+  server.insecure: "true"
+  server.disable.auth: "false"
 ---
 # ArgoCD RBAC ConfigMap
 apiVersion: v1
@@ -318,9 +337,11 @@ spec:
           mountPath: /app/config/ssh
         - name: tls-certs
           mountPath: /app/config/tls
+        - name: gpg-keys
+          mountPath: /app/config/gpg/source
         readinessProbe:
           httpGet:
-            path: /healthz?full=true
+            path: /healthz
             port: 8081
           initialDelaySeconds: 5
           periodSeconds: 10
@@ -337,6 +358,9 @@ spec:
       - name: tls-certs
         configMap:
           name: argocd-tls-certs-cm
+      - name: gpg-keys
+        emptyDir: {}
+
 ---
 # SSH Known Hosts ConfigMap
 apiVersion: v1
@@ -534,3 +558,35 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m0s
+
+---
+# ArgoCD Redis Deployment (no auth)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-redis
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-redis
+    app.kubernetes.io/part-of: argocd
+    app.kubernetes.io/component: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-redis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: argocd-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:6.2.6
+          args:
+            - "--save"
+            - ""
+            - "--appendonly"
+            - "no"
+          ports:
+            - containerPort: 6379

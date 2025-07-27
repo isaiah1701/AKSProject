@@ -188,25 +188,36 @@ This pipeline handles the application layer - building, scanning, and deploying 
 
 #### Application Overview - Complete FastAPI ML Application Walkthrough
 
-https://github.com/isaiah1701/AKSProject/assets/200955694/docs/AKS.mp4
+
+
+https://github.com/user-attachments/assets/8a39fbc0-4439-446c-b005-7d8999d5f903
+
 
 *Complete walkthrough of the FastAPI ML application showing image classification endpoints, health checks, and API documentation.*
 
 #### ArgoCD GitOps - Deployment Synchronization and Management  
 
-https://github.com/isaiah1701/AKSProject/assets/200955694/docs/aksArgoCD.mp4
+
+https://github.com/user-attachments/assets/e1cc6c13-3ae2-47b4-9f83-2a1fcd2aa558
+
+
 
 *Demonstration of ArgoCD sync processes, configuration management, and GitOps workflow for continuous deployment.*
 
 #### Grafana Dashboards - Real-time Monitoring and Visualization
 
-https://github.com/isaiah1701/AKSProject/assets/200955694/docs/aksGrafana.mp4
+
+
+https://github.com/user-attachments/assets/0a896cea-12c4-4e84-906a-2f59566799d1
+
 
 *Real-time monitoring dashboards showing application metrics, infrastructure performance, and ML model monitoring.*
 
 #### Prometheus Metrics - Data Collection and Alerting
 
-https://github.com/isaiah1701/AKSProject/assets/200955694/docs/aksPrometheus.mp4
+
+https://github.com/user-attachments/assets/5628d987-3496-4eae-ab4c-bff2dac4cb12
+
 
 *Metrics collection setup, custom alerts configuration, and performance monitoring for the ML application.*
 

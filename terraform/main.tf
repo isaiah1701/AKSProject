@@ -26,10 +26,10 @@ module "aks" {
 }
 
 module "storage" {
-  source              = "./modules/storage"
-    storage_account_name = module.rg.name
-  location            = module.rg.location
-  resource_group_name = module.rg.name
+  source               = "./modules/storage"
+  storage_account_name = module.rg.name
+  location             = module.rg.location
+  resource_group_name  = module.rg.name
 }
 
 module "dns" {
@@ -40,7 +40,7 @@ module "dns" {
 
 module "acr" {
   source              = "./modules/acr"
-  acr_name            = "acr${var.resource_group_name}"
+  acr_name            = "acrisaiah4748"
   location            = module.rg.location
   resource_group_name = module.rg.name
   aks_principal_id    = module.aks.kubelet_identity

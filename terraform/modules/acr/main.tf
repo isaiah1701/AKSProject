@@ -19,7 +19,7 @@ resource "azurerm_role_assignment" "aks_acr_pull" {
   principal_id         = var.aks_principal_id
   role_definition_name = "AcrPull"
   scope                = azurerm_container_registry.acr.id
-  
+
   depends_on = [azurerm_container_registry.acr]
 }
 
@@ -29,7 +29,7 @@ resource "azurerm_role_assignment" "argocd_acr_pull" {
   principal_id         = var.argocd_principal_id
   role_definition_name = "AcrPull"
   scope                = azurerm_container_registry.acr.id
-  
+
   depends_on = [azurerm_container_registry.acr]
 }
 
@@ -39,7 +39,7 @@ resource "azurerm_role_assignment" "cicd_acr_push" {
   principal_id         = var.cicd_principal_id
   role_definition_name = "AcrPush"
   scope                = azurerm_container_registry.acr.id
-  
+
   depends_on = [azurerm_container_registry.acr]
 }
 
@@ -49,6 +49,6 @@ resource "azurerm_user_assigned_identity" "acr_identity" {
   name                = "${var.acr_name}-identity"
   location            = var.location
   resource_group_name = var.resource_group_name
-  
+
   tags = var.tags
 }

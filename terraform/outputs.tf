@@ -18,7 +18,7 @@ output "dns_zone_name" {
 output "subscription_id" {
   description = "The Azure subscription ID used"
   value       = var.subscription_id
-  sensitive   = true  # Mark as sensitive since it's an ID
+  sensitive   = true # Mark as sensitive since it's an ID
 }
 
 output "location" {

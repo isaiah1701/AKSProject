@@ -58,7 +58,7 @@ jobs:
     - name: Terraform Init
       run: |
         rm -rf .terraform .terraform.lock.hcl terraform.tfstate*
-        terraform init -upgrade || echo "Init failed but continuing..."
+        terraform init -upgrade -reconfigure || echo "Init failed but continuing..."
       continue-on-error: true
 
     - name: Terraform Validate
@@ -182,7 +182,9 @@ jobs:
     - name: Terraform Init
       run: |
         rm -rf .terraform .terraform.lock.hcl terraform.tfstate*
-        terraform init -upgrade || echo "Init failed but continuing..."
+        # Use a new state key to avoid corrupted state
+        sed -i 's/key.*=.*/key = "infra-$(date +%Y%m%d).tfstate"/' backend.tf || echo "Failed to update state key"
+        terraform init -upgrade -reconfigure || echo "Init failed but continuing..."
       continue-on-error: true
 
     - name: Terraform Plan

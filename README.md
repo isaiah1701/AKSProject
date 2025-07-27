@@ -1,18 +1,46 @@
-# AKS MLOps Pipeline with FastAPI Image Classification
+# AKS MLOps Pipeline Infrastructure with GitOps, CI/CD, Security, and Monitoring
 
-A production-ready Azure Kubernetes Service (AKS) MLOps pipeline featuring FastAPI image classification, comprehensive monitoring, GitOps deployment, SSL certificates, and automatic DNS management.
+## Overview
 
-## 🚀 Features
+This project provisions a production-grade Kubernetes cluster on Azure using AKS (Azure Kubernetes Service) to deploy and manage a FastAPI-based machine learning application. The app is hosted at `aks.isaiahmichael.com` and includes endpoints for image classification using MobileNetV2, health checks, and API documentation.
 
-- **🤖 AI/ML Application**: FastAPI service with MobileNetV2 image classification
-- **📊 Monitoring Stack**: Prometheus & Grafana with custom dashboards
-- **🔄 GitOps**: ArgoCD for automatic deployment and synchronization
-- **🔒 SSL/TLS**: Automatic certificate management with Let's Encrypt
-- **🌐 DNS Management**: Automatic DNS record creation with Cloudflare
-- **☁️ Cloud Infrastructure**: Terraform-managed AKS cluster
-- **🛡️ Security**: Secure secrets management and ingress configuration
+The infrastructure is built using Terraform, GitHub Actions, and ArgoCD for GitOps-based deployment. It includes automated TLS certificates, DNS management with Cloudflare, RBAC access control, and a full observability stack using Prometheus and Grafana for comprehensive monitoring.
 
-## 🏗️ Architecture
+The goal was to build a secure, scalable, and fully automated MLOps environment that reflects real-world DevOps workflows used in production AI/ML teams.
+
+> **Note**: This is a production-ready demonstration project showcasing AKS, MLOps, and cloud-native technologies.
+
+Source code available at: [github.com/isaiah1701/AKSProject](https://github.com/isaiah1701/AKSProject)
+
+## Key Features
+
+• **Azure AKS** - A fully managed Kubernetes platform on Azure ☁️, used here to run the ML application with built-in scaling, high availability, and native Azure service integration.
+
+• **Terraform Infrastructure as Code** - Modular Terraform code 📦 provisions all infrastructure components — including VNet, resource groups, AKS cluster, ACR — with remote state stored in Azure Storage backend.
+
+• **CI/CD Pipelines**
+  ◦ Terraform validation pipeline validates, plans, and applies infrastructure configurations with automated error handling ⚙️.
+  ◦ Application pipeline handles:
+   ■ Checkov 🔍 for static analysis of Terraform security and compliance.
+   ■ Docker image builds 🛠️ and publishing to Azure Container Registry (ACR).
+   ■ Trivy 🧪 to scan images for vulnerabilities.
+   ■ Deployment to AKS using Kubernetes manifests 🚀.
+
+• **GitOps with ArgoCD** - ArgoCD syncs application state from Git to the cluster 🔁. This powers consistent, version-controlled updates to the ML application with no manual intervention.
+
+• **Helm Charts** - Used to install and configure Kubernetes tools like ArgoCD, Cert-Manager, Prometheus, and Grafana 🧩 — making the environment easy to reproduce.
+
+• **Cert-Manager** - Handles HTTPS certificate issuance and renewal automatically 🔐 via Let's Encrypt, securing public-facing services without manual effort.
+
+• **ExternalDNS** - Automatically manages DNS records in Cloudflare 🌍 based on Kubernetes ingress resources — keeping domain routing up to date during deployments.
+
+• **Prometheus and Grafana** - Delivers observability 📊 with real-time metrics collection and dashboards tracking pod health, resource usage, ML model performance, and system metrics.
+
+• **RBAC (Role-Based Access Control)** - Access to the cluster is restricted 🛡️ using namespace-level and cluster-wide permissions, following least privilege principles.
+
+## Architecture
+
+### System Overview
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -29,255 +57,311 @@ A production-ready Azure Kubernetes Service (AKS) MLOps pipeline featuring FastA
         │                       │                       │
 ┌───────▼───────┐    ┌──────────▼──────────┐    ┌───────▼───────┐
 │   FastAPI     │    │     Monitoring      │    │    ArgoCD     │
-│ Image Classify │    │ Prometheus/Grafana  │    │   GitOps      │
+│ ML Classifier │    │ Prometheus/Grafana  │    │   GitOps      │
 │ aks.domain    │    │ prometheus.domain   │    │ argocd.domain │
 └───────────────┘    └─────────────────────┘    └───────────────┘
 ```
 
-## 🎯 Subdomains
+### Key Architectural Components
 
-The application uses the following subdomains under `isaiahmichael.com`:
+**Control Plane (Azure Managed)**
+• AKS master nodes managed by Azure
+• API server, etcd, scheduler, and controller manager
 
-- **`aks.isaiahmichael.com`** - FastAPI image classification service
-- **`prometheus.isaiahmichael.com`** - Prometheus monitoring dashboard
-- **`grafana.isaiahmichael.com`** - Grafana visualization dashboard  
-- **`argocd.isaiahmichael.com`** - ArgoCD GitOps interface
+**Data Plane (Customer Managed)**
+• Azure VM worker nodes in private subnets
+• FastAPI ML application pods and system components
+• Load balancers and ingress controllers
 
-## 🚀 Quick Start
+**Application Layer**
+• FastAPI ML application at aks.isaiahmichael.com
+• Image classification API using MobileNetV2
+• Health checks and API documentation endpoints
+• Docker containerized microservices
 
-### Prerequisites
+**GitOps Layer**
+• ArgoCD for declarative deployments
+• Git repositories as single source of truth
+• Automated synchronization and rollback capabilities
 
-1. **Azure CLI** and **kubectl** installed
-2. **Terraform** installed
-3. **Docker** installed (for building images)
-4. **Cloudflare account** with API token
-5. **Domain** managed by Cloudflare (`isaiahmichael.com`)
+**Security & Access**
+• Azure AD integration and service principals
+• RBAC for fine-grained permissions
+• Network security groups and policies
 
-### 1. Infrastructure Setup
+**Observability Stack**
+• Prometheus for metrics collection from FastAPI app and infrastructure
+• Grafana for visualization and ML model monitoring
+• Centralized logging and performance tracking
 
-```bash
-# Navigate to terraform directory
-cd terraform
+**Automation & DNS**
+• Cert-Manager for automatic SSL/TLS certificates
+• ExternalDNS for dynamic DNS record management with Cloudflare
+• Helm for package management and application deployments
 
-# Initialize and plan
-terraform init
-terraform plan
+## CI/CD Pipeline Architecture
 
-# Apply infrastructure
-terraform apply
-```
+This project implements two complementary GitHub Actions workflows that automate infrastructure provisioning, security scanning, and ML application deployment.
 
-### 2. Connect to AKS Cluster
+### Pipeline 1: Infrastructure Validation & Deployment
 
-```bash
-# Get cluster credentials
-az aks get-credentials --resource-group <resource-group> --name <cluster-name>
+**File**: `.github/workflows/TerraformCheck.yaml`
 
-# Verify connection
-kubectl cluster-info
-```
+#### What it does:
+This pipeline handles the infrastructure layer - creating and managing your AKS cluster and Azure resources.
 
-### 3. Secure External DNS Setup
+#### Workflow Steps:
+1. **Security Scanning with Checkov** 🔍
+   ◦ Scans Terraform code for misconfigurations and security violations
+   ◦ Checks for Azure best practices (encrypted storage, proper IAM, etc.)
+   ◦ Continues deployment even if issues found (warnings only)
 
-**Important**: Never commit your Cloudflare API token to Git!
+2. **Terraform Infrastructure Management** 🏗️
+   ◦ Validates Terraform syntax and configuration
+   ◦ Plans changes to show what will be created/modified
+   ◦ Applies changes to provision AKS cluster, VNet, Resource Groups, ACR, etc.
+   ◦ Uses Azure Storage backend for state management
 
-```bash
-# Method 1: Environment variable (recommended for CI/CD)
-export CLOUDFLARE_API_TOKEN="your_cloudflare_api_token"
-./setup-external-dns.sh
+3. **Error Handling** ⚠️
+   ◦ Gracefully handles existing resources
+   ◦ Continues workflow even if some steps fail
+   ◦ Provides detailed status summaries
 
-# Method 2: Secure file (recommended for local development)
-echo "your_cloudflare_api_token" > .cloudflare-token
-./setup-external-dns.sh
-```
+#### Triggers:
+• Pushes to `main` or `develop` branches
+• Changes to any Terraform files or workflow
 
-See [`EXTERNAL-DNS-GUIDE.md`](./EXTERNAL-DNS-GUIDE.md) for detailed setup instructions.
+### Pipeline 2: Application Build & Deployment
 
-### 4. Deploy the Complete Stack
+**File**: `.github/workflows/docker-build.yaml` (if exists)
 
-```bash
-# Run the automated deployment script
-./deploy.sh
-```
+#### What it does:
+This pipeline handles the application layer - building, scanning, and deploying your FastAPI ML application.
 
-This script will:
-- Deploy ingress-nginx controller
-- Set up cert-manager and External DNS (with secure token injection)
-- Configure SSL certificates for all subdomains
-- Deploy monitoring stack (Prometheus & Grafana)
-- Deploy ArgoCD for GitOps
-- Deploy the FastAPI application
+#### Workflow Steps:
+1. **Docker Image Build** 🐳
+   ◦ Builds Docker image from `app/`
+   ◦ Tags with commit SHA for version tracking
+   ◦ Pushes to Azure Container Registry (ACR)
 
-### 5. Validation
+2. **Security Scanning with Trivy** 🧪
+   ◦ Scans Docker images for vulnerabilities
+   ◦ Checks for known CVEs in ML dependencies
+   ◦ Reports CRITICAL, HIGH, MEDIUM, LOW severity issues
+   ◦ Never blocks deployment (security awareness, not gates)
 
-```bash
-# Run validation script
-./validate.sh
-```
+3. **Kubernetes Deployment** 🚀
+   ◦ Updates Kubernetes manifests with new image tag
+   ◦ ArgoCD syncs changes from Git to AKS cluster
+   ◦ Forces pod restart to pull new ML model image
+   ◦ Waits for successful rollout
 
-This checks:
-- Cluster connectivity
-- Pod health across all namespaces
-- SSL certificate status
-- DNS record creation
-- Service accessibility
+#### Triggers:
+• Pushes to `main` branch
+• Only when files in `app/` directory change
 
-## 📂 Project Structure
+### Key Pipeline Features
 
-```
-AKSProject/
-├── app/                          # FastAPI application
-│   ├── src/                      # Python source code
-│   │   ├── main.py              # FastAPI application
-│   │   ├── model.py             # MobileNetV2 model
-│   │   └── utils.py             # Utility functions
-│   ├── static/                   # Static web assets
-│   ├── requirements.txt          # Python dependencies
-│   ├── Dockerfile               # Container image
-│   └── test_app.py              # Unit tests
-├── k8-manifests/                # Kubernetes manifests
-│   ├── app/                     # Application deployment
-│   ├── monitoring/              # Prometheus & Grafana
-│   ├── ingress/                 # Ingress NGINX controller
-│   └── cert-manager/            # SSL & DNS management
-├── terraform/                   # Infrastructure as Code
-│   ├── modules/                 # Terraform modules
-│   └── *.tf                     # Main configuration
-├── deploy.sh                    # Automated deployment
-├── validate.sh                  # Validation script
-├── setup-external-dns.sh        # Secure DNS setup
-└── EXTERNAL-DNS-GUIDE.md        # DNS security guide
-```
+#### Security-First Approach 🔒
+• Checkov scans infrastructure code for Azure security best practices
+• Trivy scans container images for known vulnerabilities in ML libraries
+• Both tools provide warnings without blocking deployment
 
-## 🔧 Manual Configuration Steps
+#### Automated State Management 📊
+• Terraform state stored in Azure Storage with state locking
+• Prevents concurrent modifications and state corruption
+• Enables team collaboration on infrastructure
 
-### 1. Update Container Image
+#### GitOps Integration ⚡
+• Pipeline updates Git repository with new image tags
+• ArgoCD automatically syncs changes to AKS cluster
+• Full audit trail of deployments through Git history
 
-Update the image reference in [`k8-manifests/app/app.yml`](./k8-manifests/app/app.yml):
+#### Environment Isolation 🏗️
+• Each pipeline has specific triggers and permissions
+• Infrastructure and application deployments are independent
+• Supports different ML development workflows
 
-```yaml
-spec:
-  containers:
-  - name: fastapi-app
-    image: your-registry/fastapi-image-classifier:latest  # Update this
-```
+## Monitoring Stack
 
-### 2. Build and Push Docker Image
-
-```bash
-cd app
-docker build -t your-registry/fastapi-image-classifier:latest .
-docker push your-registry/fastapi-image-classifier:latest
-```
-
-### 3. DNS Configuration
-
-After deployment, External DNS will automatically create DNS records. However, you may need to:
-
-1. Verify records in Cloudflare dashboard
-2. Ensure proper proxy settings (orange cloud)
-3. Check propagation: `dig aks.isaiahmichael.com`
-
-## 🔍 Monitoring & Observability
+### Demo Videos
+- **Application Overview**: [`docs/AKS.mp4`](./docs/AKS.mp4) - Complete walkthrough of the FastAPI ML application
+- **ArgoCD GitOps**: [`docs/aksArgoCD.mp4`](./docs/aksArgoCD.mp4) - ArgoCD sync and configuration management
+- **Grafana Dashboards**: [`docs/aksGrafana.mp4`](./docs/aksGrafana.mp4) - Real-time monitoring dashboards
+- **Prometheus Metrics**: [`docs/aksPrometheus.mp4`](./docs/aksPrometheus.mp4) - Metrics collection and alerting
 
 ### Prometheus
 - **URL**: https://prometheus.isaiahmichael.com
-- **Metrics**: Application, infrastructure, and Kubernetes metrics
-- **Alerting**: Configure alerts for critical thresholds
+- **Metrics**: Application, infrastructure, ML model performance, and Kubernetes metrics
+- **Alerting**: Configure alerts for critical thresholds and ML model drift
 
 ### Grafana  
 - **URL**: https://grafana.isaiahmichael.com
-- **Default Login**: admin/admin (change on first login)
-- **Dashboards**: Pre-configured for Kubernetes and application monitoring
+- **Default Login**: admin/[generated-password]
+- **Dashboards**: Pre-configured for Kubernetes, application monitoring, and ML metrics
 
 ### Application Logs
 ```bash
-# View application logs
+# View ML application logs
 kubectl logs -n default deployment/fastapi-app -f
 
 # View all pod logs in namespace
 kubectl logs -n default -l app=fastapi-app --tail=100
 ```
 
-## 🔒 Security Features
+## Setup Instructions
 
-- **TLS Everywhere**: All services protected with Let's Encrypt certificates
-- **Secret Management**: Secure handling of Cloudflare API tokens
-- **Network Policies**: Planned for enhanced pod-to-pod security
-- **RBAC**: Service accounts with minimal required permissions
-- **Ingress Security**: Rate limiting and DDoS protection via Cloudflare
+### Prerequisites
+• Azure CLI configured with appropriate permissions
+• kubectl installed
+• Helm 3.x installed
+• Terraform installed
+• Valid domain name with Cloudflare DNS management
 
-## 🔄 GitOps with ArgoCD
-
-ArgoCD automatically syncs your application from Git:
-
-1. **Access**: https://argocd.isaiahmichael.com
-2. **Default Login**: admin/[get-password-from-secret]
-3. **Auto-sync**: Enabled for continuous deployment
-4. **Self-healing**: Automatically corrects configuration drift
-
+### 1. Repository Setup
 ```bash
-# Get ArgoCD admin password
-kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
+git clone https://github.com/isaiah1701/AKSProject
+cd AKSProject
 ```
 
-## 🛠️ Development Workflow
-
-1. **Make Changes**: Update code in `app/` or manifests in `k8-manifests/`
-2. **Build Image**: `docker build -t your-registry/fastapi-image-classifier:tag .`
-3. **Push Image**: `docker push your-registry/fastapi-image-classifier:tag`
-4. **Update Manifests**: Update image tag in `k8-manifests/app/app.yml`
-5. **Commit Changes**: ArgoCD will automatically sync and deploy
-
-## 🚨 Troubleshooting
-
-### External DNS Issues
+### 2. Infrastructure Provisioning
 ```bash
-# Check External DNS logs
-kubectl logs -n external-dns deployment/external-dns -f
+# Initialize and apply Terraform configuration
+cd terraform
+terraform init
+terraform plan
+terraform apply
 
-# Verify DNS records
-kubectl describe configmap external-dns-txt-registry -n external-dns
+# Configure kubectl to connect to your new cluster
+az aks get-credentials --resource-group <resource-group> --name <cluster-name>
+
+# Verify cluster connectivity
+kubectl get nodes
 ```
 
-### SSL Certificate Issues
+### 3. ArgoCD Installation
 ```bash
+# Run the automated ArgoCD installation script
+./k8-manifests/argocd/install-argocd.sh
+
+# Get initial admin password
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d
+```
+
+### 4. Certificate Management
+```bash
+# Apply cert-manager configuration
+kubectl apply -f k8-manifests/cert-manager/
+
+# Verify installation
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=cert-manager -n cert-manager --timeout=300s
+```
+
+### 5. Monitoring Stack
+```bash
+# Install Prometheus and Grafana using Helm
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+kubectl create namespace monitoring
+helm install monitoring prometheus-community/kube-prometheus-stack \
+  --namespace monitoring
+
+# Apply monitoring ingresses
+kubectl apply -f k8-manifests/monitoring/
+```
+
+### 6. DNS Automation
+```bash
+# Configure ExternalDNS with Cloudflare
+kubectl apply -f k8-manifests/cert-manager/external-dns.yaml
+
+# Verify DNS automation is working
+kubectl logs -n external-dns deployment/external-dns --tail=20
+```
+
+### Verification & Access
+
+Once all components are deployed, you can access:
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| FastAPI ML App | https://aks.isaiahmichael.com | - |
+| ArgoCD | https://argocd.isaiahmichael.com | admin / [password from step 3] |
+| Grafana | https://grafana.isaiahmichael.com | admin / [generated-password] |
+| Prometheus | https://prometheus.isaiahmichael.com | - |
+
+#### Health Checks
+```bash
+# Verify all pods are running
+kubectl get pods --all-namespaces
+
 # Check certificate status
-kubectl describe certificaterequests
+kubectl get certificates --all-namespaces
 
-# Check cert-manager logs
-kubectl logs -n cert-manager deployment/cert-manager -f
+# Verify ingress configurations
+kubectl get ingress --all-namespaces
 ```
 
-### Application Issues
+## Troubleshooting
+
+### Common Issues:
+• **Certificate not ready**: Wait 2-3 minutes for Let's Encrypt validation
+• **DNS records not created**: Verify Cloudflare API token permissions
+• **Pod startup failures**: Check resource limits and node capacity
+• **Access denied**: Verify RBAC configuration and Azure service principal permissions
+
+### Useful Commands:
 ```bash
-# Check pod status
-kubectl get pods -n default
+# Check pod logs
+kubectl logs -f <pod-name> -n <namespace>
 
-# Check service and ingress
-kubectl get svc,ingress -n default
+# Describe resources for troubleshooting
+kubectl describe <resource-type> <resource-name> -n <namespace>
 
-# View detailed pod info
-kubectl describe pod <pod-name> -n default
+# Check cluster events
+kubectl get events --sort-by='.lastTimestamp' -A
 ```
 
-## 📚 Additional Resources
+### Cleanup
+To tear down the entire infrastructure:
+```bash
+# Remove Kubernetes resources first
+helm uninstall monitoring -n monitoring
+kubectl delete -f k8-manifests/
 
-- [External DNS Security Guide](./EXTERNAL-DNS-GUIDE.md)
-- [FastAPI Documentation](./app/README.md)
-- [Terraform Modules Documentation](./terraform/README.md)
+# Destroy Azure infrastructure
+cd terraform
+terraform destroy
+```
 
-## 🤝 Contributing
+## Why This Setup Adds Real Value in a Production Environment
 
-1. Fork the repository
-2. Create a feature branch
-3. Make changes and test thoroughly
-4. Submit a pull request
+**ArgoCD for Reliable, Versioned Deployments** - ArgoCD enables consistent, auditable deployments directly from Git. It reduces manual errors, supports rollback, and fits cleanly into CI/CD workflows for team-based ML delivery.
 
-## 📄 License
+**AKS for Scalability and Azure Integration** - Using Azure AKS provides a managed, production-grade Kubernetes environment. It handles scaling and availability out of the box, while integrating with other Azure services like Azure AD, VNet, and Azure Monitor.
 
-This project is licensed under the MIT License.
+**HTTPS and Access Control Built In** - Cert-Manager automates certificate management using Let's Encrypt, removing the need for manual renewal or provisioning. RBAC is used to control access at both the namespace and cluster level.
 
----
+**CI/CD Pipelines with Security Checks** - Pipelines are set up to:
+• Scan Terraform code with Checkov for misconfigurations
+• Build and push Docker images to ACR
+• Scan those images with Trivy before deployment
+• Deploy to AKS via GitOps with ArgoCD
 
-**Note**: This is a demonstration project for learning AKS, MLOps, and cloud-native technologies. For production use, additional security hardening, monitoring, and operational procedures should be implemented.
+This approach helps catch security issues early and keeps ML deployments consistent.
+
+**Automated DNS with ExternalDNS** - ExternalDNS integrates with Cloudflare to update DNS records automatically based on Kubernetes ingress changes. It removes the need for manual updates and speeds up ML model deployments.
+
+**Monitoring with Prometheus and Grafana** - Prometheus collects application and infrastructure metrics, including ML model performance, and Grafana displays them in real-time dashboards. This makes it easier to track model performance and catch issues before they impact users.
+
+## Infrastructure Components
+
+**VNet (Virtual Network)**: Provides a secure, isolated network environment for the cluster
+**AKS (Azure Kubernetes Service)**: Manages the Kubernetes control plane and worker nodes
+**ACR (Azure Container Registry)**: Stores and manages Docker container images
+**ArgoCD**: Manages application deployments based on Git repositories
+**Helm**: Deploys and manages Kubernetes resources using Helm charts
+**Cert-Manager**: Handles SSL/TLS certificate issuance and renewal
+**ExternalDNS**: Automates DNS record updates in Cloudflare
